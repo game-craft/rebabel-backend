@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	chatController := controllers.NewSpotController(infrastructure.NewSqlHandler())
+	chatController := controllers.NewChatController(infrastructure.NewSqlHandler())
 	chatController.UpdateData()
 }
