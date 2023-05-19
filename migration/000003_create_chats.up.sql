@@ -1,7 +1,7 @@
 CREATE TABLE `chats` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `worlds_id` INT NOT NULL,
-    `chats_sentence` VARCHAR(255) NOT NULL,
+    `chats_content` VARCHAR(255) NOT NULL,
     `created_at` TIMESTAMP NOT NULL,
     `updated_at` TIMESTAMP NOT NULL,
     PRIMARY KEY (`id`)
@@ -10,4 +10,4 @@ CREATE TABLE `chats` (
 ALTER TABLE chats
 ADD CONSTRAINT fk_chats_worlds
 FOREIGN KEY (worlds_id)
-REFERENCES chats(id);
+REFERENCES worlds(id);
