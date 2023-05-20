@@ -27,12 +27,16 @@ func main() {
 	chatController := controllers.NewChatController(infrastructure.NewSqlHandler())
 	chatDictionaryController := controllers.NewChatDictionaryController(infrastructure.NewSqlHandler())
 
+	fmt.Println("chat_analysis_command:Start processing")
+	
 	chats := chatController.GetChatData()
 	chatResponse := callAnalysisApi(chats)
 	chatDictionarys := chatDictionaryController.GetChatDictionaryData()
 	chatDictionariesGood, chatDictionariesBad := createChatChatClassificationList(chatDictionarys)
-	chatClassifications := createChatChatClassificationQuery(chatResponse, chatDictionariesGood, chatDictionariesBad)
-	fmt.Println(chatClassifications)
+	chatClassifications := createChatClassificationQuery(chatResponse, chatDictionariesGood, chatDictionariesBad)
+	createChatClassificationData(chatClassifications)
+
+	fmt.Println("chat_analysis_command:Processing completed successfully")
 }
 
 func callAnalysisApi(chats domain.Chats) []ChatResponse {
@@ -78,15 +82,15 @@ func createChatChatClassificationList(chatDictionarys domain.ChatDictionaries) (
 		} else if chatDictionarys[i].ChatDictionariesStatus == "status:Bad" {
 			chatDictionariesBad = append(chatDictionariesBad, chatDictionarys[i].ChatDictionariesContent)
 		} else {
-			fmt.Println("Could not classify")
+			fmt.Println("chat_analysis_command:Could not classify")
 		}
 	}
 
 	return chatDictionariesGood, chatDictionariesBad
 }
 
-func createChatChatClassificationQuery(chatResponse []ChatResponse, chatDictionariesGood []string, chatDictionariesBad []string) (chatClassifications domain.ChatClassifications) {
-	for i :=0; i < len(chatResponse); i++ {
+func createChatClassificationQuery(chatResponse []ChatResponse, chatDictionariesGood []string, chatDictionariesBad []string) (chatClassifications domain.ChatClassifications) {
+	for i := 0; i < len(chatResponse); i++ {
 		for j :=0; j < len(chatResponse[i].WordList); j++ {
 			if searchContains(chatDictionariesGood, chatResponse[i].WordList[j]) {
 				data := domain.ChatClassification{
@@ -118,4 +122,16 @@ func searchContains(arr []string, target string) bool {
     }
 
     return false
+}
+
+func createChatClassificationData(chatClassifications domain.ChatClassifications) {
+	chatClassificationController := controllers.NewChatClassificationController(infrastructure.NewSqlHandler())
+
+	for i := 0; i < len(chatClassifications); i++ {
+		chatClassification := domain.ChatClassification{}
+		chatClassification.WorldsId = chatClassifications[i].WorldsId
+		chatClassification.ChatClassificationsContent = chatClassifications[i].ChatClassificationsContent
+		chatClassification.ChatClassificationsStatus = chatClassifications[i].ChatClassificationsStatus
+		chatClassificationController.CreateChatClassificationData(chatClassification)
+	}
 }
