@@ -20,8 +20,8 @@ func NewChatDictionaryController(sqlHandler database.SqlHandler) *ChatDictionary
 	}
 }
 
-func (controller *ChatDictionaryController) GetChatDictionaryData() (chats domain.ChatDictionaries) {
-	chats, err := controller.Interactor.ChatDictionaries()
+func (controller *ChatDictionaryController) GetChatDictionaryData() (chatDictionaries domain.ChatDictionaries) {
+	chatDictionaries, err := controller.Interactor.ChatDictionaries()
 	if err != nil {
 		panic(err)
 	}
