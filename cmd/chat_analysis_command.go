@@ -32,7 +32,10 @@ func main() {
 	fmt.Println(chatResponse)
 
 	chatDictionarys := chatDictionaryController.GetChatDictionaryData()
-	fmt.Println(chatDictionarys)
+	chatDictionariesGood, chatDictionariesBad := createChatChatClassificationList(chatDictionarys)
+	
+	fmt.Println(chatDictionariesGood)
+	fmt.Println(chatDictionariesBad)
 }
 
 func callAnalysisApi(chats domain.Chats) []ChatResponse {
@@ -69,4 +72,22 @@ func callAnalysisApi(chats domain.Chats) []ChatResponse {
 	json.Unmarshal(body, &chatResponse)
 	
 	return chatResponse
+}
+
+func createChatChatClassificationList(chatDictionarys domain.ChatDictionaries) (chatDictionariesGood []string, chatDictionariesBad []string) {
+	for i :=0; i < len(chatDictionarys); i++ {
+		if chatDictionarys[i].ChatDictionariesStatus == "Good" {
+			chatDictionariesGood = append(chatDictionariesGood, chatDictionarys[i].ChatDictionariesContent)
+		} else if chatDictionarys[i].ChatDictionariesStatus == "Bad" {
+			chatDictionariesBad = append(chatDictionariesBad, chatDictionarys[i].ChatDictionariesContent)
+		} else {
+			fmt.Println("Could not classify")
+		}
+	}
+
+	return chatDictionariesGood, chatDictionariesBad
+}
+
+func updateChatClassification(chatDictionarys domain.ChatDictionaries) {
+
 }
