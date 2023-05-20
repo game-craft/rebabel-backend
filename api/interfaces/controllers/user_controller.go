@@ -52,7 +52,7 @@ func (controller *UserController) Register(c echo.Context) (err error) {
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	u.Password = string(hashedPassword)
-	u.Status = "Offline"
+	u.Status = "status:Offline"
 	user, err = controller.Interactor.Add(u)
 	if err != nil {
 		return c.JSON(500, NewError(err))
