@@ -14,12 +14,12 @@ import (
 )
 
 type Chat struct {
-	ID int `json:"id"`
+	WorldsId int `json:"worlds_id"`
 	Word string `json:"word"`
 }
 
 type ChatResponse struct {
-	Id int `json:"id"`
+	WorldsId int `json:"worlds_id"`
 	WordList []string `json:"word_list"`
 }
 
@@ -29,13 +29,10 @@ func main() {
 
 	chats := chatController.GetChatData()
 	chatResponse := callAnalysisApi(chats)
-	fmt.Println(chatResponse)
-
 	chatDictionarys := chatDictionaryController.GetChatDictionaryData()
 	chatDictionariesGood, chatDictionariesBad := createChatChatClassificationList(chatDictionarys)
-	
-	fmt.Println(chatDictionariesGood)
-	fmt.Println(chatDictionariesBad)
+	chatClassifications := createChatChatClassificationQuery(chatResponse, chatDictionariesGood, chatDictionariesBad)
+	fmt.Println(chatClassifications)
 }
 
 func callAnalysisApi(chats domain.Chats) []ChatResponse {
@@ -43,7 +40,7 @@ func callAnalysisApi(chats domain.Chats) []ChatResponse {
 
 	for i :=0; i < len(chats); i++ {
 		json := Chat{
-			ID: chats[i].ID,
+			WorldsId: chats[i].WorldsId,
 			Word: chats[i].ChatsContent,
 		}
 		chatBodys = append(chatBodys, json)
@@ -76,9 +73,9 @@ func callAnalysisApi(chats domain.Chats) []ChatResponse {
 
 func createChatChatClassificationList(chatDictionarys domain.ChatDictionaries) (chatDictionariesGood []string, chatDictionariesBad []string) {
 	for i :=0; i < len(chatDictionarys); i++ {
-		if chatDictionarys[i].ChatDictionariesStatus == "Good" {
+		if chatDictionarys[i].ChatDictionariesStatus == "status:Good" {
 			chatDictionariesGood = append(chatDictionariesGood, chatDictionarys[i].ChatDictionariesContent)
-		} else if chatDictionarys[i].ChatDictionariesStatus == "Bad" {
+		} else if chatDictionarys[i].ChatDictionariesStatus == "status:Bad" {
 			chatDictionariesBad = append(chatDictionariesBad, chatDictionarys[i].ChatDictionariesContent)
 		} else {
 			fmt.Println("Could not classify")
@@ -88,6 +85,37 @@ func createChatChatClassificationList(chatDictionarys domain.ChatDictionaries) (
 	return chatDictionariesGood, chatDictionariesBad
 }
 
-func updateChatClassification(chatDictionarys domain.ChatDictionaries) {
+func createChatChatClassificationQuery(chatResponse []ChatResponse, chatDictionariesGood []string, chatDictionariesBad []string) (chatClassifications domain.ChatClassifications) {
+	for i :=0; i < len(chatResponse); i++ {
+		for j :=0; j < len(chatResponse[i].WordList); j++ {
+			if searchContains(chatDictionariesGood, chatResponse[i].WordList[j]) {
+				data := domain.ChatClassification{
+					WorldsId: chatResponse[i].WorldsId,
+					ChatClassificationsContent: chatResponse[i].WordList[j],
+					ChatClassificationsStatus: "status:Good",
+				}
+				chatClassifications = append(chatClassifications, data)
+			}
+			if searchContains(chatDictionariesBad, chatResponse[i].WordList[j]) {
+				data := domain.ChatClassification{
+					WorldsId: chatResponse[i].WorldsId,
+					ChatClassificationsContent: chatResponse[i].WordList[j],
+					ChatClassificationsStatus: "status:Bad",
+				}
+				chatClassifications = append(chatClassifications, data)
+			}
+		}
+	}
 
+	return chatClassifications
+}
+
+func searchContains(arr []string, target string) bool {
+    for _, element := range arr {
+        if element == target {
+            return true
+        }
+    }
+
+    return false
 }
